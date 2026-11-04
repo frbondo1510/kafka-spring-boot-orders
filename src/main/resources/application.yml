@@ -1,0 +1,32 @@
+server:
+  port: 8085   # 8080 est pris par kafka-ui
+
+spring:
+  application:
+    name: kafka-formation
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all                  # attendre la confirmation de tous les réplicas in-sync
+      properties:
+        enable.idempotence: true # pas de doublons en cas de retry réseau
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest  # un nouveau groupe relit le topic depuis le début
+      enable-auto-commit: false    # Spring commite lui-même après traitement
+    listener:
+      ack-mode: record             # commit après chaque message traité (simple à observer)
+
+formation:
+  topics:
+    orders: orders
+    orders-dlt: orders-dlt
+  partitions: 3
+
+logging:
+  level:
+    com.bondo.kafkaformation: INFO
+    org.apache.kafka: WARN
