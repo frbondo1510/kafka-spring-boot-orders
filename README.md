@@ -18,7 +18,7 @@ POST /orders ──► [orders] (3 partitions, clé = customerId)
    ou en ligne de commande : `mvn spring-boot:run`
 3. Envoyer une commande :
    ```
-   curl -X POST "http://localhost:8081/orders?customerId=c1&product=clavier&quantity=2"
+   curl -X POST "http://localhost:8085/orders?customerId=c1&product=clavier&quantity=2"
    ```
    Sous PowerShell, utiliser `curl.exe` (et non `curl`, qui est un alias d'Invoke-WebRequest).
 
@@ -37,7 +37,7 @@ Observe dans les logs et l'UI la redistribution des 3 partitions. Lances-en une 
 
 **4. Poison pill et DLT**
 ```
-curl -X POST "http://localhost:8081/orders?customerId=c1&product=poison"
+curl -X POST "http://localhost:8085/orders?customerId=c1&product=poison"
 ```
 Observe : 3 retries espacés d'1 s côté NOTIF, puis le message arrive dans `orders-dlt` avec ses headers d'origine.
 STOCK, lui, l'a traité normalement. Question d'entretien : pendant les retries, que deviennent les autres messages de la même partition ?

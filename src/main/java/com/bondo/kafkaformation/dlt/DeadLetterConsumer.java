@@ -1,5 +1,7 @@
 package com.bondo.kafkaformation.dlt;
 
+import java.nio.charset.StandardCharsets;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.header.Header;
 import org.slf4j.Logger;
@@ -7,8 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.stereotype.Component;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * Surveille le DLT. En vrai projet : alerte, stockage pour analyse, ou rejeu manuel après correction.
@@ -22,11 +22,22 @@ public class DeadLetterConsumer {
     @KafkaListener(topics = "${formation.topics.orders-dlt}", groupId = "dlt-monitor")
     public void onDeadLetter(ConsumerRecord<String, String> record) {
         log.error("[DLT] message en échec : origine={}-{}@{} cause={} valeur={}",
-                header(record, KafkaHeaders.DLT_ORIGINAL_TOPIC),
-                header(record, KafkaHeaders.DLT_ORIGINAL_PARTITION),
-                header(record, KafkaHeaders.DLT_ORIGINAL_OFFSET),
-                header(record, KafkaHeaders.DLT_EXCEPTION_MESSAGE),
+                header(record, KafkaHeaders.DLT_ORIGINAL_TOPIC, KafkaHeaders.ORIGINAL_TOPIC),
+                header(record, KafkaHeaders.DLT_ORIGINAL_PARTITION, KafkaHeaders.ORIGINAL_PARTITION),
+                header(record, KafkaHeaders.DLT_ORIGINAL_OFFSET, KafkaHeaders.ORIGINAL_OFFSET),
+                header(record, KafkaHeaders.DLT_EXCEPTION_MESSAGE, KafkaHeaders.EXCEPTION_MESSAGE),
                 record.value());
+    }
+
+    /** Retourne le premier header trouvé : format DLT classique, puis format @RetryableTopic. */
+    private static String header(ConsumerRecord<?, ?> record, String... names) {
+        for (String name : names) {
+            String value = header(record, name);
+            if (!"?".equals(value)) {
+                return value;
+            }
+        }
+        return "?";
     }
 
     /** Les en-têtes partition/offset sont des entiers binaires, les autres du texte. */
