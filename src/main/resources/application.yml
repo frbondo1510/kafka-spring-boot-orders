@@ -1,5 +1,5 @@
 server:
-  port: 8085   # 8080 est pris par kafka-ui
+  port: 8085   # 8080 = kafka-ui, 8081 = déjà pris par une appli Java dans WSL
 
 spring:
   application:
